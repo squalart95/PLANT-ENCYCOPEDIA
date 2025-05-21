@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simon Reinhart's Plant Encyclopedia</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .plant-container {
+    white-space: nowrap; /* Prevent wrapping */
+    overflow-x: auto; /* Enable horizontal scrolling */
+}
+.plant-card {
+    display: inline-block;
+    margin-right: 15px; /* Add spacing between cards */
+    vertical-align: top; /* Align cards to the top */
+}
+        .compare-section {
+            display: flex; 
+            flex-direction: column;
+            gap: 20px; 
+            flex-wrap: wrap; 
+            align-items: flex-start; 
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        .compare-box {
+            border: 2px dashed #555;
+            padding: 10px;
+            min-height: 50px;
+            display: flex; /* Use flexbox for horizontal layout */
+            flex-wrap: wrap; /* wrapping to the next line */
+            gap: 10px; /* Add spacing between items */
+            overflow-x: auto; /* Enable horizontal scrolling if needed */
+        }
+        .compare-box img {
+    border-radius: 4px; /* Optional: Add rounded corners to the image */
+    border: 1px solid #ccc; /* Optional: Add a border around the image */
+}
+        .alchemy-card {
+            display: flex;
+            flex-wrap: wrap;
+            border: 1px solid #888;
+            border-radius: 8px;
+            padding: 10px;
+            width: 180px;
+        }
+        .potion-card {
+            display: flex;
+            flex-wrap: wrap;
+            border: 2px solid #4b0082;
+            border-radius: 8px;
+            padding: 10px;
+            background: #f0f0ff;
+            width: 220px;
+        }
+        .alchemy-flex {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .card {
+    width: 300px;
+    border: 2px solid #ccc;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 16px;
+    background: #fff;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.top-section {
+    position: relative;
+    background: #f4f4f4;
+    padding: 16px;
+    text-align: center;
+}
+
+.top-section .border {
+    height: 4px;
+    background: #ddd;
+    margin-bottom: 8px;
+}
+
+.top-section .icons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+}
+
+.bottom-section {
+    padding: 16px;
+    text-align: center;
+}
+
+.bottom-section .title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.item {
+    text-align: center;
+}
+
+.big-text {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    display: block; /* Ensure the big text is on its own line */
+}
+
+.regular-text {
+    font-size: 12px;
+    color: #666;
+    display: block; /* Ensure the regular text is on its own line */
+}
+
+button {
+    background: #007bff;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+button:hover {
+    background: #0056b3;
+}
+
+.card .bottom-section .row {
+    display: flex;
+    flex-direction: column; /* Stack items vertically */
+    align-items: flex-start; /* Align text to the left */
+    gap: 8px; /* Add spacing between lines */
+}
+
+.card .bottom-section .item {
+    display: block; /* Ensure each item takes up its own line */
+    margin-bottom: 4px; /* Add spacing between items */
+}
+    </style>
+</head>
+<body>
+    <h1>The Verdant Lexicon of Dooheim</h1>
+    <h2>Simon Reinhart&#39;s Ever-Growing Chronicle of Dooheim&#39;s Flora</h2>
+    <div class="input-container">
+  <input
+    class="input"
+    id="search"
+    name="text"
+    type="text"
+    placeholder="Search Plants..."
+    onkeyup="searchPlants()"
+  />
+</div>
+    <h3>Filter by Use:</h3>
+    <select id="use-filter" onchange="filterByUse()">
+        <option value="">All Uses</option>
+        <option value="healing">Healing</option>
+        <option value="fire resistance">Fire Resistance</option>
+        <option value="energy boost">Energy Boost</option>
+        <option value="spirit communication">Spirit Communication</option>
+        <option value="invisibility">Invisibility</option>
+        <option value="weather control">Weather Control</option>
+        <option value="poison resistance">Poison Resistance</option>
+        <option value="dream clarity">Dream Clarity</option>
+        <option value="speed enhancement">Speed Enhancement</option>
+        <option value="mind enhancement">Mind Enhancement</option>
+        <option value="protection">Protection</option>
+        <option value="sleep aid">Sleep Aid</option>
+    </select>
+
+    <div class="plant-container" id="plant-list"></div>
+
+    <div id="compare-box">
+        <h2>Compare Plants</h2>
+        <div class="compare-box" id="compare-box-inner"></div>
+    </div>
+    <div id="alchemy-section">
+        <h2>Alchemy Results</h2>
+        <div id="alchemy-results" class="alchemy-flex"></div>
+    </div>
+    <div id="all-potions-section">
+    <h2>All Potions</h2>
+    <div class="potion-container" id="potion-list"></div>
+</div>
+    <!-- From Uiverse.io by Codecite --> 
+
+
+<script>
+const categoryColors = {
+    "Healing": "#d4e6d4",
+    "Fire Resistance": "#e6d4d4",
+    "Energy Boost": "#e6e2d4",
+    "Spirit Communication": "#d4d4e6",
+    "Invisibility": "#d4e6e6",
+    "Weather Control": "#cce6d4",
+    "Poison Resistance": "#e6d4cc",
+    "Dream Clarity": "#e6e6d4",
+    "Speed Enhancement": "#e6d4e2",
+    "Mind Enhancement": "#ddd4e6",
+    "Protection": "#d4d4cc",
+    "Sleep Aid": "d4e6e6",
+    "Purple": "#c8a2c8",
+    "Blue": "#a2c8d5",
+    "Red": "#d5a2a2",
+    "Yellow": "#f7e27d",
+    "White": "#ffffff",
+    "Pink": "#f7c8e0",
+    "Orange": "#f7a76d",
+    "Bright Orange": "#ffb347",
+    "Deep Red": "#a52a2a",
+    "Dark Purple": "#5d3a5a",
+    "Bright Blue": "#5dade2",
+    "Lavender": "#e6e6fa",
+    "Gold": "#ffd700",
+    "Silver": "#c0c0c0",
+    "Black": "#000000",
+    "Brown": "#8b4513"
+};
+
+const plants = [
+    { name: "Verdant Whisper", pollinator: "Bee", color: "Green", bloom: "Spring", uses: "Healing, Energy Boost", habitat: "Forests" },
+    { name: "Dewberry Bush", pollinator: "Bird (Songbird)", color: "Purple", bloom: "Summer", uses: "Antioxidant, Immune Boost", habitat: "Meadows, Woodlands" },
+    { name: "Lunar Bloom", pollinator: "Butterfly", color: "Blue", bloom: "Spring", uses: "Vision Enhancement, Protection", habitat: "Meadows" },
+    { name: "Embervine", pollinator: "Bat", color: "Red", bloom: "Summer, Fall", uses: "Fire Resistance, Energy Source", habitat: "Caves, Mountainous" },
+    { name: "Thorncrest Vine", pollinator: "Pollinating Insects", color: "Yellow", bloom: "Spring", uses: "Laxative, Digestive Aid", habitat: "Wetlands" },
+    { name: "Skyflower", pollinator: "Butterfly, Bee", color: "White, Pink", bloom: "Spring, Summer", uses: "Fertility, Purification", habitat: "Fields, Meadows" },
+    { name: "Blazing Ember", pollinator: "Bee, Butterfly", color: "Bright Orange", bloom: "Summer, Fall", uses: "Fire Resistance, Fire Magic", habitat: "Volcanic Regions" },
+    { name: "Moonshadow Fern", pollinator: "Moth, Pollinating Insects", color: "Purple", bloom: "Night", uses: "Sleep Aid, Dream Clarity", habitat: "Caves, Nightshades" },
+    { name: "Frostleaf", pollinator: "Bee, Squirrel", color: "White", bloom: "Winter", uses: "Cold Resistance, Freeze Defense", habitat: "Mountain Peaks" },
+    { name: "Sunflare Petal", pollinator: "Bird, Bee", color: "Yellow, Orange", bloom: "Spring, Summer", uses: "Light Amplification, Energy Boost", habitat: "Open Fields" },
+    { name: "Dragonvine", pollinator: "Butterfly, Bird", color: "Deep Red", bloom: "Summer", uses: "Strength, Protection", habitat: "Swamps, Wetlands" },
+    { name: "Twilight Orchid", pollinator: "Moth, Pollinating Insects", color: "Dark Purple", bloom: "Night", uses: "Mind Enhancement, Emotional Balance", habitat: "Forests" },
+    { name: "Stormbloom", pollinator: "Bat, Pollinating Insects", color: "Bright Blue", bloom: "Rainy Seasons", uses: "Weather Control, Storm Summoning", habitat: "Mountain Ranges" },
+    { name: "Heartbloom", pollinator: "Bee, Butterfly", color: "Pink, White", bloom: "Spring", uses: "Love, Healing", habitat: "Forest Edges" },
+    { name: "Thornstrike Plant", pollinator: "Bird, Insects", color: "Orange, Yellow", bloom: "Summer", uses: "Poison Resistance, Agility Boost", habitat: "Deserts, Grasslands" },
+    { name: "Crimson Shade", pollinator: "Bee", color: "Deep Red", bloom: "Fall", uses: "Pain Relief, Wound Healing", habitat: "Woodlands" },
+    { name: "Ghostvine", pollinator: "Bat", color: "White", bloom: "Night", uses: "Spirit Communication, Protection", habitat: "Graveyards, Ruins" },
+    { name: "Emberthorn", pollinator: "Pollinating Insects", color: "Red, Black", bloom: "Fall", uses: "Fire Magic, Protective Aura", habitat: "Volcanic Cliffs" },
+    { name: "Starlight Ivy", pollinator: "Bird, Bee", color: "Silver, Blue", bloom: "Spring, Summer", uses: "Protection, Luck", habitat: "High Altitudes" },
+    { name: "Midnight Lotus", pollinator: "Bat, Moth", color: "Deep Purple", bloom: "Night", uses: "Night Vision, Stealth", habitat: "Swamps, Lakes" },
+    { name: "Verdant Dream", pollinator: "Bee", color: "Green", bloom: "Spring", uses: "Dream Inducing, Sleep Aid", habitat: "Rainforests" },
+    { name: "Velvet Fern", pollinator: "Pollinating Insects", color: "Blue, Green", bloom: "Summer, Fall", uses: "Skin Healing, Soothing", habitat: "Wetlands" },
+    { name: "Frostbloom", pollinator: "Butterfly, Bee", color: "White, Blue", bloom: "Winter, Spring", uses: "Cold Protection, Healing", habitat: "Arctic, High Elevations" },
+    { name: "Twilight Vine", pollinator: "Bee, Pollinating Insects", color: "Purple, Pink", bloom: "Evening", uses: "Mind Calming, Focus", habitat: "Swamps, Marshes" },
+    { name: "Sunblossom", pollinator: "Butterfly", color: "Yellow, White", bloom: "Spring, Summer", uses: "Light Magic, Strength", habitat: "Meadows" },
+    { name: "Thundervine", pollinator: "Bee, Squirrel", color: "Yellow, Blue", bloom: "Summer", uses: "Thunder Resistance, Energy Boost", habitat: "Forests, Mountains" },
+    { name: "Windpetal", pollinator: "Pollinating Insects", color: "Pink, White", bloom: "Spring, Summer", uses: "Wind Magic, Lightness", habitat: "Coastal Areas" },
+    { name: "Shadowthorn", pollinator: "Insects, Squirrels", color: "Black, Purple", bloom: "Fall", uses: "Shadow Magic, Stealth", habitat: "Caves, Forests" },
+    { name: "Goldenwhisker Vine", pollinator: "Bird, Pollinating Insects", color: "Gold, Yellow", bloom: "Summer, Fall", uses: "Healing, Speed Enhancement", habitat: "Grasslands" },
+    { name: "Firewood Blossom", pollinator: "Bird, Bee", color: "Red, Orange", bloom: "Summer, Fall", uses: "Fire Control, Energy Boost", habitat: "Mountain Areas" },
+    { name: "Bluefire Petal", pollinator: "Bee, Butterfly", color: "Blue, Red", bloom: "Summer", uses: "Fire Magic, Defense", habitat: "Volcanic Regions" },
+    { name: "Cloudleaf", pollinator: "Moth, Butterfly", color: "White, Purple", bloom: "Spring, Summer", uses: "Dream-Inducing, Sleep Aid", habitat: "Fields, Meadows" },
+    { name: "Bloodroot", pollinator: "Squirrel, Bird", color: "Red, Green", bloom: "Fall", uses: "Strength, Battle Readiness", habitat: "Woodlands, Forests" },
+    { name: "Mistbloom", pollinator: "Moth, Pollinating Insects", color: "Lavender", bloom: "Evening, Night", uses: "Illusion, Invisibility", habitat: "Swamps, Wetlands" },
+    { name: "Lightbloom", pollinator: "Bee, Bird", color: "Bright White", bloom: "Spring, Summer", uses: "Light Magic, Growth", habitat: "High Altitudes" },
+    { name: "Ironroot", pollinator: "Pollinating Insects", color: "Dark Green", bloom: "Winter", uses: "Strength, Defense", habitat: "Rocky Terrain" },
+    { name: "Stonevine", pollinator: "Squirrel, Bird", color: "Green, Brown", bloom: "Spring, Summer", uses: "Earth Magic, Strength", habitat: "Mountains, Cliffs" },
+    { name: "Glowfern", uses: "Light Magic" },
+    { name: "Ashroot", uses: "Fire Resistance" },
+    { name: "Mistvine", uses: "Invisibility" },
+    { name: "Dreampetal", uses: "Dream Clarity" },
+    { name: "Ironbark", uses: "Strength" },
+    { name: "Skybud", uses: "Wind Magic" },
+    { name: "Shadowleaf", uses: "Shadow Magic" },
+    { name: "Goldenpetal", uses: "Healing" },
+    { name: "Frostthorn", uses: "Cold Resistance" },
+    { name: "Sunseed", uses: "Energy Boost" }
+];
+
+// Auto-generate additional information for the new plants
+newPlants.forEach(plant => {
+  plant.pollinator = ["Bee", "Butterfly", "Moth", "Bird"][Math.floor(Math.random() * 4)];
+  plant.color = ["Green", "Yellow", "Blue", "Red", "Purple", "White"][Math.floor(Math.random() * 6)];
+  plant.bloom = ["Spring", "Summer", "Fall", "Winter"][Math.floor(Math.random() * 4)];
+  plant.habitat = ["Forests", "Meadows", "Caves", "Mountains", "Wetlands", "Fields"][Math.floor(Math.random() * 6)];
+});
+
+// Add the new plants to the existing plants array
+plants.push(...newPlants);
+
+// Re-display the plants to include the new ones
+displayPlants();
+
+const potionList = [
+  {
+    name: "Potion of Fire Ward",
+    requiredUses: ["Fire Resistance", "Energy Boost"],
+    effects: "Grants resistance to fire-based attacks.",
+    rarity: "Uncommon"
+  },
+  {
+    name: "Dreamwalk Elixir",
+    requiredUses: ["Dream Clarity", "Sleep Aid"],
+    effects: "Enhances dream clarity and induces lucid dreams.",
+    rarity: "Rare"
+  },
+  {
+    name: "Twilight Serum",
+    requiredUses: ["Dream Inducing", "Sleep Aid"],
+    effects: "Induces deep sleep with vivid, lucid dreams.",
+    rarity: "Rare"
+  },
+  {
+    name: "Herbal Soothe",
+    requiredUses: ["Soothing", "Digestive Aid"],
+    effects: "Eases digestion and stomach discomfort.",
+    rarity: "Common"
+  },
+  {
+    name: "Forest Remedy",
+    requiredUses: ["Healing", "Pain Relief"],
+    effects: "Treats common wounds and mild pain.",
+    rarity: "Common"
+  },
+  {
+    name: "Vital Infusion",
+    requiredUses: ["Energy Boost", "Immune Boost"],
+    effects: "Boosts immune response and energy.",
+    rarity: "Common"
+  },
+  {
+    name: "Clearbreath Tonic",
+    requiredUses: ["Cold Resistance", "Freeze Defense"],
+    effects: "Reduces effects of colds and clears lungs.",
+    rarity: "Common"
+  },
+  {
+    name: "Sunpetal Salve",
+    requiredUses: ["Skin Healing", "Soothing"],
+    effects: "Soothes skin irritation and rashes.",
+    rarity: "Common"
+  },
+  {
+    name: "Dewdrop Brew",
+    requiredUses: ["Fertility", "Purification"],
+    effects: "Cleanses the body and aids fertility.",
+    rarity: "Common"
+  },
+  {
+    name: "Nightsleep Draft",
+    requiredUses: ["Sleep Aid", "Dream Clarity"],
+    effects: "Helps you fall asleep quickly and dream clearly.",
+    rarity: "Common"
+  },
+  {
+    name: "Lavender Lift",
+    requiredUses: ["Emotional Balance", "Mind Enhancement"],
+    effects: "Reduces stress and enhances clarity.",
+    rarity: "Common"
+  },
+  {
+    name: "Guardroot Decoction",
+    requiredUses: ["Poison Resistance", "Healing"],
+    effects: "Provides mild detoxifying and healing properties.",
+    rarity: "Common"
+  },
+  {
+    name: "Snaproot Extract",
+    requiredUses: ["Agility Boost", "Energy Boost"],
+    effects: "Energizes and quickens reflexes.",
+    rarity: "Common"
+  },
+  {
+    name: "Woundwrap Poultice",
+    requiredUses: ["Wound Healing", "Protection"],
+    effects: "Promotes wound healing and guards against infection.",
+    rarity: "Common"
+  },
+  {
+    name: "Flameheart Draught",
+    requiredUses: ["Fire Resistance", "Fire Magic"],
+    effects: "Grants immunity to fire and enhances fire spells.",
+    rarity: "Uncommon"
+  },
+  {
+    name: "Stormcall Elixir",
+    requiredUses: ["Weather Control", "Storm Summoning"],
+    effects: "Summons thunderstorms and boosts weather influence.",
+    rarity: "Rare"
+  },
+  {
+    name: "Verdant Vitalis",
+    requiredUses: ["Healing", "Energy Boost"],
+    effects: "Quickly restores vitality and stamina.",
+    rarity: "Common"
+  },
+  {
+    name: "Shadowveil Tonic",
+    requiredUses: ["Shadow Magic", "Stealth"],
+    effects: "Shrouds user in darkness, making them undetectable.",
+    rarity: "Rare"
+  },
+  {
+    name: "Skyblossom Brew",
+    requiredUses: ["Light Magic", "Strength"],
+    effects: "Empowers the drinker with radiant strength.",
+    rarity: "Uncommon"
+  },
+  {
+    name: "Glacial Essence",
+    requiredUses: ["Cold Protection", "Freeze Defense"],
+    effects: "Creates a shield of frost around the user.",
+    rarity: "Uncommon"
+  },
+  {
+    name: "Earthwarden Elixir",
+    requiredUses: ["Earth Magic", "Strength"],
+    effects: "Binds strength with the fortitude of stone.",
+    rarity: "Rare"
+  },
+  {
+    name: "Lucidmind Philter",
+    requiredUses: ["Mind Enhancement", "Emotional Balance", "Vision Enhancement"],
+    effects: "Sharpens focus and stabilizes emotion.",
+    rarity: "Uncommon"
+  },
+  {
+    name: "Dreamveil Tonic",
+    requiredUses: ["Dream Clarity", "Sleep Aid"],
+    effects: "Grants vivid dreams and restful sleep.",
+    rarity: "Rare"
+  },
+  {
+    name: "Sunfire Solution",
+    requiredUses: ["Light Amplification", "Energy Boost"],
+    effects: "Channels sunlight into raw magical power.",
+    rarity: "Uncommon"
+  },
+  {
+    name: "Eclipse Infusion",
+    requiredUses: ["Spirit Communication", "Protection", "Dream Clarity"],
+    effects: "Enables communion with spirits while warding danger.",
+    rarity: "Rare"
+  }
+  
+
+];
+
+let comparedPlants = [];
+
+function getPlantImageFileName(plantName) {
+    // Replace spaces with underscores, remove special chars, and lowercase (adjust as needed)
+    return plantName.replace(/[^a-z0-9]/gi, '_') + ".jpg";
+}
+
+function getPotionImageFileName(potionName) {
+    // Replace spaces with underscores, remove special characters, and append .jpg
+    return potionName.replace(/[^a-z0-9]/gi, '_') + ".jpg";
+}
+
+function displayPlants() {
+    const container = document.getElementById("plant-list");
+    container.innerHTML = "";
+
+    plants.forEach(plant => {
+        let card = document.createElement("div");
+        card.className = "card";
+        card.setAttribute("data-uses", plant.uses.toLowerCase());
+
+        // Get the colors for the plant's uses and category
+        let usesList = plant.uses.split(",");
+        let colors = usesList.map(use => categoryColors[use.trim()]).filter(Boolean);
+
+        // Add the plant's color to the colors array
+        if (categoryColors[plant.color]) {
+            colors.unshift(categoryColors[plant.color]);
+        }
+
+        // Apply the first color in the array as the background color
+        if (colors.length > 0) card.style.backgroundColor = colors[0];
+
+        // Image path
+        const imgFile = "img/icons/" + getPlantImageFileName(plant.name);
+
+        // Card template
+        card.innerHTML = `
+            <div class="top-section">
+                <div class="border"></div>
+                <div class="icons">
+                    <div class="logo">
+                        <img src="${imgFile}" alt="${plant.name}" style="width:64px;height:64px;object-fit:contain;">
+                    </div>
+                </div>
+            </div>
+            <div class="bottom-section">
+                <span class="title">${plant.name}</span>
+                <div class="row row1">
+                    <div class="item">
+                        <span class="big-text">${plant.color}</span>
+                        <span class="regular-text">Color</span>
+                    </div>
+                    <div class="item">
+                        <span class="big-text">${plant.bloom}</span>
+                        <span class="regular-text">Bloom</span>
+                    </div>
+                    <div class="item">
+                        <span class="big-text">${plant.habitat}</span>
+                        <span class="regular-text">Habitat</span>
+                    </div>
+                </div>
+                <div class="row row2">
+                    <div class="item">
+                        <span class="big-text">${plant.uses}</span>
+                        <span class="regular-text">Uses</span>
+                    </div>
+                </div>
+                <button onclick="addToCompare('${plant.name}')">Add to Compare</button>
+            </div>
+        `;
+
+        container.appendChild(card);
+    });
+}
+
+displayPlants();
+
+function addToCompare(name) {
+    const compareBox = document.getElementById("compare-box-inner");
+
+    if (comparedPlants.includes(name)) return;
+
+    const plant = plants.find(p => p.name === name);
+    if (!plant) return;
+
+    const imgFile = "img/icons/" + getPlantImageFileName(plant.name);
+
+    const card = document.createElement("div");
+    card.className = "alchemy-card";
+    card.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <img src="${imgFile}" alt="${plant.name}" style="width:40px; height:40px; object-fit:contain;" onerror="this.src='img/icons/placeholder.jpg';">
+            <div>
+                <h4 style="margin: 0;">${plant.name}</h4>
+                <p style="margin: 0;">Uses: ${plant.uses}</p>
+            </div>
+        </div>
+        <button onclick="removeFromCompare('${plant.name}', this)">Remove</button>
+    `;
+
+    compareBox.appendChild(card);
+    comparedPlants.push(name);
+    checkForPotionMatch();
+}
+
+function removeFromCompare(name, el) {
+    comparedPlants = comparedPlants.filter(p => p !== name);
+    el.parentElement.remove();
+    checkForPotionMatch();
+}
+
+function checkForPotionMatch() {
+    const alchemyResultBox = document.getElementById("alchemy-results");
+    alchemyResultBox.innerHTML = "";
+
+    const uses = new Set();
+    comparedPlants.forEach(name => {
+        const plant = plants.find(p => p.name === name);
+        if (plant) plant.uses.split(",").forEach(u => uses.add(u.trim()));
+    });
+
+    potionList.forEach(potion => {
+        const matched = potion.requiredUses.every(req => uses.has(req));
+        if (matched) {
+            const card = document.createElement("div");
+            card.className = "card";
+
+            // Get the colors for the potion's required uses
+            let colors = potion.requiredUses.map(use => categoryColors[use.trim()]).filter(Boolean);
+
+            // Apply the first color in the array as the background color
+            if (colors.length > 0) card.style.backgroundColor = colors[0];
+
+            // Get the image path for the potion using getPotionImageFileName
+            const imgFile = "img/potions/" + getPotionImageFileName(potion.name);
+
+            card.innerHTML = `
+                <div class="top-section">
+                    <div class="border"></div>
+                    <div class="icons">
+                        <div class="logo">
+                            <img src="${imgFile}" alt="${potion.name}" style="width:64px;height:64px;object-fit:contain;" onerror="this.src='img/potions/placeholder.jpg';">
+                        </div>
+                    </div>
+                </div>
+                <div class="bottom-section">
+                    <span class="title">${potion.name}</span>
+                    <div class="row row1">
+                        <div class="item">
+                            <span class="big-text">${potion.rarity}</span>
+                            <span class="regular-text">Rarity</span>
+                        </div>
+                        <div class="item">
+                            <span class="big-text">${potion.effects}</span>
+                            <span class="regular-text">Effects</span>
+                        </div>
+                    </div>
+                    <div class="row row2">
+                        <div class="item">
+                            <span class="big-text">${potion.requiredUses.join(", ")}</span>
+                            <span class="regular-text">Required Uses</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            alchemyResultBox.appendChild(card);
+        }
+    });
+}
+function filterByUse() {
+    const selectedUse = document.getElementById("use-filter").value.toLowerCase();
+    const plantCards = document.querySelectorAll(".card"); // Ensure it targets the correct cards
+
+    plantCards.forEach(card => {
+        const plantUses = card.getAttribute("data-uses") || ""; // Get the `data-uses` attribute
+        if (selectedUse === "" || plantUses.includes(selectedUse)) {
+            card.style.display = "inline-block"; // Show the card
+        } else {
+            card.style.display = "none"; // Hide the card
+        }
+    });
+}
+function searchPlants() {
+    const searchQuery = document.getElementById("search").value.toLowerCase().trim();
+    const plantCards = document.querySelectorAll("#plant-list .card"); // Target plant cards specifically
+
+    plantCards.forEach(card => {
+        const plantName = card.querySelector(".title").textContent.toLowerCase(); // Get the plant name
+        const plantDetails = card.textContent.toLowerCase(); // Includes all text in the card
+
+        // Check if the search query matches the plant name or details
+        if (plantName.includes(searchQuery) || plantDetails.includes(searchQuery)) {
+            card.style.display = "inline-block"; // Show the card
+        } else {
+            card.style.display = "none"; // Hide the card
+        }
+    });
+}
+function displayPotions() {
+    const container = document.getElementById("potion-list");
+    container.innerHTML = ""; // Clear the container before populating it
+
+    potionList.forEach(potion => {
+        let card = document.createElement("div");
+        card.className = "card";
+
+        // Get the image path for the potion
+        const imgFile = "img/potions/" + getPotionImageFileName(potion.name);
+
+        card.innerHTML = `
+            <div class="top-section">
+                <div class="border"></div>
+                <div class="icons">
+                    <div class="logo">
+                        <img src="${imgFile}" alt="${potion.name}" style="width:64px;height:64px;object-fit:contain;" onerror="this.src='img/potions/placeholder.jpg';">
+                    </div>
+                </div>
+            </div>
+            <div class="bottom-section">
+                <span class="title">${potion.name}</span>
+                <div class="row row1">
+                    <div class="item">
+                        <span class="big-text">${potion.rarity}</span>
+                        <span class="regular-text">Rarity</span>
+                    </div>
+                    <div class="item">
+                        <span class="big-text">${potion.effects}</span>
+                        <span class="regular-text">Effects</span>
+                    </div>
+                </div>
+                <div class="row row2">
+                    <div class="item">
+                        <span class="big-text">${potion.requiredUses.join(", ")}</span>
+                        <span class="regular-text">Required Uses</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        container.appendChild(card);
+    });
+}
+displayPotions();
+</script>
+</body>
+</html>

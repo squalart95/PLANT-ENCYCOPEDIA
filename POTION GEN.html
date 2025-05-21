@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Alchemy Generator</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #1e1e2f;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+    }
+
+    select, button {
+      font-size: 1.2rem;
+      margin: 10px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+    }
+
+    select {
+      background: #f0f0f0;
+      color: #000;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-size: 1.4rem;
+      text-align: center;
+    }
+
+    #result img {
+      margin-top: 10px;
+      width: 100px;
+      height: 100px;
+      object-fit: contain;
+      border: 2px solid #fff;
+      border-radius: 8px;
+    }
+
+    #result p {
+      font-size: 0.9rem;
+      color: #ccc;
+      margin-top: 10px;
+    }
+
+    #potion-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+      gap: 10px;
+      margin-top: 20px;
+      width: 100%;
+      max-width: 800px;
+    }
+
+    .potion-card {
+      text-align: center;
+    }
+
+    .potion-card img {
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Mobile Alchemy Generator</h1>
+
+  <label for="ingredient1">Ingredient 1:</label>
+  <select id="ingredient1">
+    <!-- Dynamically populated -->
+  </select>
+
+  <label for="ingredient2">Ingredient 2:</label>
+  <select id="ingredient2">
+    <!-- Dynamically populated -->
+  </select>
+
+  <button id="combineBtn">Combine</button>
+
+  <div id="result">Result: (none yet)</div>
+
+  <h2>All Potions</h2>
+  <div id="potion-grid"></div>
+
+  <script>
+    // Fetch the JSON data from plantdata.json
+    fetch('plantdata.json')
+      .then(response => response.json())
+      .then(data => {
+        const plants = data.plants; // Extract plants array
+        const potionList = data.potions; // Extract potions array
+
+        // Populate the dropdowns with plant names and add a 'None' option
+        const ingredient1 = document.getElementById('ingredient1');
+        const ingredient2 = document.getElementById('ingredient2');
+
+        // Add 'None' option to both dropdowns
+        const noneOption1 = document.createElement('option');
+        noneOption1.value = "None";
+        noneOption1.textContent = "None";
+        ingredient1.appendChild(noneOption1);
+
+        const noneOption2 = document.createElement('option');
+        noneOption2.value = "None";
+        noneOption2.textContent = "None";
+        ingredient2.appendChild(noneOption2);
+
+        // Populate the dropdowns with plant names
+        plants.forEach(plant => {
+          const option1 = document.createElement('option');
+          option1.value = plant.name;
+          option1.textContent = plant.name;
+          ingredient1.appendChild(option1);
+
+          const option2 = document.createElement('option');
+          option2.value = plant.name;
+          option2.textContent = plant.name;
+          ingredient2.appendChild(option2);
+        });
+
+        // Function to generate flavor text based on the potion name or effects
+        function generateFlavorText(potionName, effects) {
+          const flavorTexts = [
+            `A concoction brewed with care, ${potionName} is said to ${effects.toLowerCase()}.`,
+            `Legends speak of ${potionName}, a potion that ${effects.toLowerCase()}.`,
+            `The alchemists of old revered ${potionName} for its ability to ${effects.toLowerCase()}.`,
+            `A mysterious brew, ${potionName} whispers promises of ${effects.toLowerCase()}.`,
+            `Crafted from rare ingredients, ${potionName} holds the power to ${effects.toLowerCase()}.`
+          ];
+
+          // Randomly select a flavor text
+          return flavorTexts[Math.floor(Math.random() * flavorTexts.length)];
+        }
+
+        // Combine ingredients to generate a potion
+        document.getElementById('combineBtn').addEventListener('click', () => {
+          const ing1 = document.getElementById('ingredient1').value;
+          const ing2 = document.getElementById('ingredient2').value;
+
+          // Handle 'None' option
+          const plant1 = ing1 !== "None" ? plants.find(p => p.name === ing1) : null;
+          const plant2 = ing2 !== "None" ? plants.find(p => p.name === ing2) : null;
+
+          if (!plant1 && !plant2) {
+            document.getElementById('result').textContent = "Result: Invalid combination.";
+            return;
+          }
+
+          const combinedUses = [
+            ...(plant1 ? plant1.uses.split(", ") : []),
+            ...(plant2 ? plant2.uses.split(", ") : [])
+          ];
+
+          // Find a matching potion
+          const potion = potionList.find(p =>
+            p.requiredUses.every(req => combinedUses.includes(req))
+          );
+
+          const resultDiv = document.getElementById('result');
+
+          if (potion) {
+            const imgFile = `img/potions/${potion.name.replace(/[^a-z0-9]/gi, '_')}.jpg`;
+            const flavorText = generateFlavorText(potion.name, potion.effects);
+            resultDiv.innerHTML = `
+              Result: ${potion.name} - ${potion.effects}
+              <br>
+              <img src="${imgFile}" alt="${potion.name}" onerror="this.src='img/potions/placeholder.jpg';">
+              <p>Uses: ${potion.requiredUses.join(", ")}</p>
+              <p>${flavorText}</p>
+            `;
+          } else {
+            // Select a random placeholder drink
+            const placeholder = placeholderDrinks[Math.floor(Math.random() * placeholderDrinks.length)];
+            const imgFile = `img/potions/${placeholder.name.replace(/[^a-z0-9]/gi, '_')}.jpg`;
+            const flavorText = `This enigmatic drink, ${placeholder.name}, is as puzzling as its taste.`;
+            resultDiv.innerHTML = `
+              Result: ${placeholder.name} - ${placeholder.effects}
+              <br>
+              <img src="${imgFile}" alt="${placeholder.name}" onerror="this.src='img/potions/placeholder.jpg';">
+              <p>Uses: None</p>
+              <p>${flavorText}</p>
+            `;
+          }
+        });
+
+        // Populate the potion grid
+        const potionGrid = document.getElementById("potion-grid");
+        potionList.forEach(potion => {
+          const imgFile = `img/potions/${potion.name.replace(/[^a-z0-9]/gi, '_')}.jpg`;
+          const potionCard = document.createElement("div");
+          potionCard.className = "potion-card";
+          potionCard.innerHTML = `
+            <img src="${imgFile}" alt="${potion.name}" title="${potion.name}" onerror="this.src='img/potions/placeholder.jpg';" style="width: 64px; height: 64px; object-fit: contain; cursor: pointer;">
+          `;
+          potionCard.addEventListener("click", () => {
+            const resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = `
+              Result: ${potion.name} - ${potion.effects}
+              <br>
+              <img src="${imgFile}" alt="${potion.name}" onerror="this.src='img/potions/placeholder.jpg';">
+              <p>Uses: ${potion.requiredUses.join(", ")}</p>
+            `;
+          });
+          potionGrid.appendChild(potionCard);
+        });
+      })
+      .catch(error => console.error('Error loading data:', error));
+  </script>
+</body>
+</html>

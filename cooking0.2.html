@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simple Cooking Generator</title>
+    <style>
+body { font-family: Arial, sans-serif; margin: 20px; }
+.section { margin-bottom: 30px; }
+.card {
+  width: 180px;
+  min-width: 120px;
+  height: auto;
+  display: inline-block;
+  border-radius: 12px;
+  margin: 8px;
+  padding: 16px;
+  color: #fff;
+  font-weight: bold;
+  box-shadow: 0 2px 8px #0002;
+  border: 2px solid var(--c2, #406102);
+  background:
+    radial-gradient(25% 25% at 25% 25%, var(--c1, #6ca700) 99%, rgba(0,0,0,0) 101%) 60px 60px / 120px 120px,
+    radial-gradient(25% 25% at 25% 25%, var(--c1, #6ca700) 99%, rgba(0,0,0,0) 101%) 0 0 / 120px 120px,
+    radial-gradient(50% 50%, var(--c2, #406102) 98%, rgba(0,0,0,0)) 0 0 / 60px 60px,
+    repeating-conic-gradient(var(--c2, #406102) 0 50%, var(--c1, #6ca700) 0 100%) 30px 0 / 120px 60px;
+  background-color: var(--c2, #406102);
+  transition: outline 0.2s, box-shadow 0.2s, filter 0.2s, background 0.2s;
+}
+.selected {
+  outline: 3px solid #fff;
+  box-shadow: 0 0 0 4px #fff8, 0 4px 16px #0003;
+  filter: brightness(1.15) drop-shadow(0 0 8px #fff8);
+}
+.yellow {
+  --c1: #ffe066;
+  --c2: #bfa600;
+}
+.brown {
+  --c1: #d7ccc8;
+  --c2: #795548;
+}
+.red {
+  --c1: #ffcdd2;
+  --c2: #b71c1c;
+}
+.blue {
+  --c1: #bbdefb;
+  --c2: #1565c0;
+}
+    </style>
+</head>
+<body>
+    <h1>Simple Cooking Generator</h1>
+
+    <div class="section">
+        <h2>Ingredients</h2>
+        <div id="ingredient-list"></div>
+    </div>
+
+    <div class="section">
+        <h2>Recipes (Select ingredients to see possible recipes)</h2>
+        <div id="recipe-list"></div>
+    </div>
+
+    <div class="section">
+        <h2>Baked Goods (Select recipes to see possible baked goods)</h2>
+        <div id="bakedgood-list"></div>
+    </div>
+
+    <hr style="margin:40px 0;">
+
+    <div class="section">
+        <h2>All Recipes</h2>
+        <div id="all-recipes-list"></div>
+    </div>
+
+    <div class="section">
+        <h2>All Baked Goods</h2>
+        <div id="all-bakedgoods-list"></div>
+    </div>
+
+    <script>
+    // Ingredient data
+    const ingredients = [
+        "Flour", "Sugar", "Eggs", "Butter", "Milk", "Yeast", "Chocolate", "Banana", "Cinnamon", "Vanilla",
+        "Salt", "Baking Powder", "Baking Soda", "Blueberries", "Lemon", "Oats", "Honey", "Walnuts", "Cream Cheese", "Pumpkin",
+        // Spring
+        "Strawberries", "Rhubarb", "Almonds", "Ricotta",
+        // Summer
+        "Peaches", "Raspberries", "Cornmeal", "Zucchini", "Lime",
+        // Winter
+        "Pecans", "Maple Syrup", "Ginger", "Cranberries", "Molasses", "Orange"
+    ];
+
+    // Recipe data
+    const recipes = [
+        { name: "Banana Bread", ingredients: ["Flour", "Sugar", "Eggs", "Butter", "Banana", "Baking Soda", "Salt"] },
+        { name: "Chocolate Cake", ingredients: ["Flour", "Sugar", "Eggs", "Butter", "Chocolate", "Milk", "Baking Powder", "Salt"] },
+        { name: "Cinnamon Rolls", ingredients: ["Flour", "Sugar", "Eggs", "Butter", "Yeast", "Cinnamon", "Milk", "Salt"] },
+        { name: "Vanilla Cupcakes", ingredients: ["Flour", "Sugar", "Eggs", "Butter", "Vanilla", "Milk", "Baking Powder", "Salt"] },
+        { name: "Blueberry Muffins", ingredients: ["Flour", "Sugar", "Eggs", "Butter", "Milk", "Blueberries", "Baking Powder", "Salt"] },
+        { name: "Lemon Loaf", ingredients: ["Flour", "Sugar", "Eggs", "Butter", "Lemon", "Baking Powder", "Salt"] },
+        { name: "Oatmeal Cookies", ingredients: ["Flour", "Sugar", "Eggs", "Butter", "Oats", "Baking Soda", "Salt"] },
+        { name: "Pumpkin Pie", ingredients: ["Flour", "Sugar", "Eggs", "Butter", "Pumpkin", "Cinnamon", "Milk", "Salt"] },
+        { name: "Walnut Brownies", ingredients: ["Flour", "Sugar", "Eggs", "Butter", "Chocolate", "Walnuts", "Baking Powder", "Salt"] },
+        { name: "Cheesecake", ingredients: ["Flour", "Sugar", "Eggs", "Butter", "Cream Cheese", "Vanilla", "Lemon"] },
+        { name: "Honey Oat Bread", ingredients: ["Flour", "Yeast", "Oats", "Honey", "Salt", "Milk", "Butter"] },
+        // Spring
+        { name: "Strawberry Rhubarb Pie", ingredients: ["Flour", "Sugar", "Butter", "Eggs", "Strawberries", "Rhubarb", "Lemon", "Salt"] },
+        { name: "Almond Ricotta Cake", ingredients: ["Flour", "Sugar", "Eggs", "Butter", "Almonds", "Ricotta", "Lemon", "Baking Powder"] },
+        // Summer
+        { name: "Peach Cobbler", ingredients: ["Flour", "Sugar", "Butter", "Eggs", "Peaches", "Baking Powder", "Milk"] },
+        { name: "Raspberry Cornmeal Muffins", ingredients: ["Flour", "Sugar", "Eggs", "Butter", "Raspberries", "Cornmeal", "Baking Powder", "Milk"] },
+        { name: "Zucchini Bread", ingredients: ["Flour", "Sugar", "Eggs", "Butter", "Zucchini", "Baking Soda", "Salt", "Cinnamon"] },
+        // Winter
+        { name: "Pecan Pie", ingredients: ["Flour", "Sugar", "Butter", "Eggs", "Pecans", "Maple Syrup", "Salt"] },
+        { name: "Gingerbread Cookies", ingredients: ["Flour", "Sugar", "Butter", "Eggs", "Ginger", "Cinnamon", "Molasses", "Baking Soda"] },
+        { name: "Cranberry Orange Bread", ingredients: ["Flour", "Sugar", "Eggs", "Butter", "Cranberries", "Orange", "Baking Powder", "Milk"] }
+    ];
+
+    // Baked goods data
+    const bakedGoods = [
+        { name: "Breakfast Platter", recipes: ["Banana Bread", "Cinnamon Rolls", "Blueberry Muffins"] },
+        { name: "Dessert Tray", recipes: ["Chocolate Cake", "Vanilla Cupcakes", "Walnut Brownies", "Cheesecake"] },
+        { name: "Party Sampler", recipes: ["Banana Bread", "Chocolate Cake", "Vanilla Cupcakes", "Oatmeal Cookies"] },
+        { name: "Autumn Feast", recipes: ["Pumpkin Pie", "Cinnamon Rolls", "Honey Oat Bread"] },
+        { name: "Tea Time", recipes: ["Lemon Loaf", "Blueberry Muffins", "Oatmeal Cookies"] },
+        // Seasonal feasts
+        { name: "Spring Feast", recipes: ["Strawberry Rhubarb Pie", "Almond Ricotta Cake", "Lemon Loaf"] },
+        { name: "Summer Feast", recipes: ["Peach Cobbler", "Raspberry Cornmeal Muffins", "Zucchini Bread"] },
+        { name: "Winter Feast", recipes: ["Pecan Pie", "Gingerbread Cookies", "Cranberry Orange Bread"] }
+    ];
+
+    // Ingredient color mapping
+    const ingredientColors = {
+        // Yellow
+        "Banana": "yellow", "Butter": "yellow", "Lemon": "yellow", "Cornmeal": "yellow", "Honey": "yellow", "Pumpkin": "yellow", "Peaches": "yellow", "Eggs": "yellow", "Oats": "yellow",
+        // Brown
+        "Flour": "brown", "Yeast": "brown", "Baking Powder": "brown", "Baking Soda": "brown", "Walnuts": "brown", "Pecans": "brown", "Almonds": "brown", "Maple Syrup": "brown", "Molasses": "brown", "Cinnamon": "brown", "Ginger": "brown",
+        // Red
+        "Strawberries": "red", "Rhubarb": "red", "Raspberries": "red", "Cranberries": "red", "Sugar": "red", "Chocolate": "red",
+        // Blue
+        "Blueberries": "blue", "Milk": "blue", "Cream Cheese": "blue", "Ricotta": "blue", "Vanilla": "blue", "Zucchini": "blue", "Orange": "blue", "Lime": "blue"
+    };
+
+    // Color backgrounds for gradients
+    const colorBackgrounds = {
+        yellow: "#ffe066",
+        brown: "#d7ccc8",
+        red: "#ffcdd2",
+        blue: "#bbdefb"
+    };
+
+    // Helper to get color class for a card based on its ingredients
+    function getCardColorClass(ingredients) {
+        for (const color of ["yellow", "brown", "red", "blue"]) {
+            if (ingredients.some(ing => ingredientColors[ing] === color)) {
+                return color;
+            }
+        }
+        return "";
+    }
+
+    // Helper to get unique ingredient colors as hex codes
+    function getIngredientColors(ingredients) {
+        const colors = [];
+        for (const color of ["yellow", "brown", "red", "blue"]) {
+            if (ingredients.some(ing => ingredientColors[ing] === color)) {
+                colors.push(colorBackgrounds[color]);
+            }
+        }
+        return colors;
+    }
+
+    // State
+    let selectedIngredients = [];
+    let selectedRecipes = [];
+
+    // Render ingredient list (interactive)
+    function renderIngredients() {
+        const container = document.getElementById('ingredient-list');
+        container.innerHTML = '';
+        ingredients.forEach(ing => {
+            const colorClass = ingredientColors[ing] || "";
+            const div = document.createElement('div');
+            div.className = 'card' + (colorClass ? ' ' + colorClass : '') + (selectedIngredients.includes(ing) ? ' selected' : '');
+            div.textContent = ing;
+            div.onclick = () => {
+                if (selectedIngredients.includes(ing)) {
+                    selectedIngredients = selectedIngredients.filter(i => i !== ing);
+                } else {
+                    selectedIngredients.push(ing);
+                }
+                renderIngredients();
+                renderRecipes();
+                renderBakedGoods();
+            };
+            container.appendChild(div);
+        });
+    }
+
+    // Render recipe list (interactive, multicolor)
+    function renderRecipes() {
+        const container = document.getElementById('recipe-list');
+        container.innerHTML = '';
+        let anyRecipeVisible = false;
+        recipes.forEach(recipe => {
+            const canMake = recipe.ingredients.every(i => selectedIngredients.includes(i));
+            if (!canMake) return;
+            anyRecipeVisible = true;
+            const div = document.createElement('div');
+            div.className = 'card' + (selectedRecipes.includes(recipe.name) ? ' selected' : '');
+            div.textContent = recipe.name;
+            // Multicolor background
+            const colors = getIngredientColors(recipe.ingredients);
+            if (colors.length > 1) {
+                div.style.background = `linear-gradient(135deg, ${colors.join(', ')})`;
+                div.style.color = "#333";
+            } else if (colors.length === 1) {
+                div.style.background = colors[0];
+                div.style.color = "#333";
+            } else {
+                div.style.background = "";
+                div.style.color = "";
+            }
+            div.onclick = () => {
+                if (selectedRecipes.includes(recipe.name)) {
+                    selectedRecipes = selectedRecipes.filter(r => r !== recipe.name);
+                } else {
+                    selectedRecipes.push(recipe.name);
+                }
+                renderRecipes();
+                renderBakedGoods();
+            };
+            container.appendChild(div);
+        });
+        if (!anyRecipeVisible) {
+            container.innerHTML = '<em>Select the required ingredients to see recipes.</em>';
+        }
+    }
+
+    // Render baked goods list (interactive, multicolor)
+    function renderBakedGoods() {
+        const container = document.getElementById('bakedgood-list');
+        container.innerHTML = '';
+        let anyBakedGoodVisible = false;
+        bakedGoods.forEach(bg => {
+            const canMake = bg.recipes.every(r => selectedRecipes.includes(r));
+            if (!canMake) return;
+            anyBakedGoodVisible = true;
+            let allIngredients = [];
+            bg.recipes.forEach(rname => {
+                const rec = recipes.find(r => r.name === rname);
+                if (rec) allIngredients = allIngredients.concat(rec.ingredients);
+            });
+            const div = document.createElement('div');
+            div.className = 'card';
+            // Multicolor background
+            const colors = getIngredientColors(allIngredients);
+            if (colors.length > 1) {
+                div.style.background = `linear-gradient(135deg, ${colors.join(', ')})`;
+                div.style.color = "#333";
+            } else if (colors.length === 1) {
+                div.style.background = colors[0];
+                div.style.color = "#333";
+            } else {
+                div.style.background = "";
+                div.style.color = "";
+            }
+            div.textContent = bg.name;
+            container.appendChild(div);
+        });
+        if (!anyBakedGoodVisible) {
+            container.innerHTML = '<em>Select the required recipes to see baked goods.</em>';
+        }
+    }
+
+    // Render all recipes with their ingredients (static, multicolor)
+    function renderAllRecipes() {
+        const container = document.getElementById('all-recipes-list');
+        container.innerHTML = '';
+        recipes.forEach(recipe => {
+            const div = document.createElement('div');
+            div.className = 'card';
+            // Multicolor background
+            const colors = getIngredientColors(recipe.ingredients);
+            if (colors.length > 1) {
+                div.style.background = `linear-gradient(135deg, ${colors.join(', ')})`;
+                div.style.color = "#333";
+            } else if (colors.length === 1) {
+                div.style.background = colors[0];
+                div.style.color = "#333";
+            } else {
+                div.style.background = "";
+                div.style.color = "";
+            }
+            div.innerHTML = `<strong>${recipe.name}</strong><ul style="margin:8px 0 0 18px;">
+                ${recipe.ingredients.map(ing => `<li>${ing}</li>`).join('')}
+            </ul>`;
+            container.appendChild(div);
+        });
+    }
+
+    // Render all baked goods with their recipes (static, multicolor)
+    function renderAllBakedGoods() {
+        const container = document.getElementById('all-bakedgoods-list');
+        container.innerHTML = '';
+        bakedGoods.forEach(bg => {
+            let allIngredients = [];
+            bg.recipes.forEach(rname => {
+                const rec = recipes.find(r => r.name === rname);
+                if (rec) allIngredients = allIngredients.concat(rec.ingredients);
+            });
+            const div = document.createElement('div');
+            div.className = 'card';
+            // Multicolor background
+            const colors = getIngredientColors(allIngredients);
+            if (colors.length > 1) {
+                div.style.background = `linear-gradient(135deg, ${colors.join(', ')})`;
+                div.style.color = "#333";
+            } else if (colors.length === 1) {
+                div.style.background = colors[0];
+                div.style.color = "#333";
+            } else {
+                div.style.background = "";
+                div.style.color = "";
+            }
+            div.innerHTML = `<strong>${bg.name}</strong><ul style="margin:8px 0 0 18px;">
+                ${bg.recipes.map(r => `<li>${r}</li>`).join('')}
+            </ul>`;
+            container.appendChild(div);
+        });
+    }
+
+    // Initial render
+    renderIngredients();
+    renderRecipes();
+    renderBakedGoods();
+    renderAllRecipes();
+    renderAllBakedGoods();
+    </script>
+</body>
+</html>
